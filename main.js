@@ -3,37 +3,38 @@ var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
 
-function templateHTML(title, list, body, control){
-  return `
-  <!doctype html>
-  <html>
-  <head>
-    <title>WEB1 - ${title}</title>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <h1><a href="/">WEB3</a></h1>
-    ${list}
-    ${control}
-    ${body}
-  </body>
-  </html>
-  `;
-}
+var template = {
+  HTML:function(title, list, body, control){
+    return `
+    <!doctype html>
+    <html>
+    <head>
+      <title>WEB1 - ${title}</title>
+      <meta charset="utf-8">
+    </head>
+    <body>
+      <h1><a href="/">WEB3</a></h1>
+      ${list}
+      ${control}
+      ${body}
+    </body>
+    </html>
+    `;
+  },
+  LIST:function(filelist){
+    var list = '<ul>';
 
-function templateLIST(filelist){
-  var list = '<ul>';
+    var i = 0;
+    while(i<filelist.length){
+      list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+      i = i + 1;
+    }
 
-  var i = 0;
-  while(i<filelist.length){
-    list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-    i = i + 1;
+    list = list + '</ul>';
+
+    return list;
   }
-
-  list = list + '</ul>';
-
-  return list;
-}
+};
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
@@ -48,7 +49,7 @@ if(pathname === '/'){
   //  fs.readFile(`data/${queryData.id}`, 'UTF-8', function(err, description){
   fs.readdir('./data', function(eroor, filelist){
     var title = 'Welcome';
-    var list = templateLIST(filelist);
+    var list = template.LIST(filelist);
     var description = 'Hello, Node.js';
     // var list = `<ul>
     //   <li><a href="/?id=HTML">HTML</a></li>
@@ -58,13 +59,13 @@ if(pathname === '/'){
 
 
 
-    var template = templateHTML(title,list,
+    var html = template.HTML(title,list,
       `<h2>${title}</h2>${description}`,
       `<a href="/create">create</a>`
   );
 
     response.writeHead(200);
-    response.end(template);
+    response.end(html);
   });
 
       //});
@@ -81,8 +82,8 @@ if(pathname === '/'){
 
     fs.readFile(`data/${queryData.id}`, 'UTF-8', function(err, description){
       var title = queryData.id;
-      var list = templateLIST(filelist);
-      var template = templateHTML(title, list,
+      var list = template.LIST(filelist);
+      var html = template.HTML(title, list,
         `<h2>${title}</h2> ${description}`,
       `<a href="/create">create</a>
        <a href="/update?id=${title}">update</a>
@@ -93,7 +94,7 @@ if(pathname === '/'){
        `);
 
       response.writeHead(200);
-      response.end(template);
+      response.end(html);
     });
       });
   }
@@ -102,7 +103,7 @@ if(pathname === '/'){
 }else if(pathname==='/create'){
   fs.readdir('./data', function(eroor, filelist){
     var title = 'WEB - create';
-    var list = templateLIST(filelist);
+    var list = template.LIST(filelist);
     var description = 'Hello, Node.js';
     // var list = `<ul>
     //   <li><a href="/?id=HTML">HTML</a></li>
@@ -112,7 +113,7 @@ if(pathname === '/'){
 
 
 
-    var template = templateHTML(title,list, `
+    var html = template.HTML(title,list, `
         <form action="/process_create" method="post">
         <p><input type="text" name="title" placeholder="title"></p>
         <p>
@@ -126,7 +127,7 @@ if(pathname === '/'){
     '');
 
     response.writeHead(200);
-    response.end(template);
+    response.end(html);
   });
 }else if(pathname==='/process_create'){
   var body = '';
@@ -153,8 +154,8 @@ if(pathname === '/'){
   fs.readdir('./data', function(eroor, filelist){
   fs.readFile(`data/${queryData.id}`, 'UTF-8', function(err, description){
     var title = queryData.id;
-    var list = templateLIST(filelist);
-    var template = templateHTML(title, list,
+    var list = template.LIST(filelist);
+    var html = template.HTML(title, list,
       `
       <form action="/update_process" method="post">
       <input type="hidden" name="id" value="${title}">
@@ -170,7 +171,7 @@ if(pathname === '/'){
     `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
 
     response.writeHead(200);
-    response.end(template);
+    response.end(html);
   });
     });
 } else if(pathname==='/update_process'){
